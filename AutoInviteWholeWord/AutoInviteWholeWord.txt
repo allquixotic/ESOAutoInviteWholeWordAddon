@@ -1,0 +1,40 @@
+## APIVersion: 100025 100026 100027
+## Title: AutoInviteWholeWord
+## Version: 2.6.1
+## Author: Sasky, |cFF5FF5Kyoma|r, |c009ad6silentgecko|r & Coorbin
+## SavedVariables: AutoInviteSettings
+## OptionalDependsOn: LibAddonMenu-2.0
+
+lib/LibStub/LibStub.lua
+lib/LibAddonMenu-2.0/LibAddonMenu-2.0.lua
+lib/LibAddonMenu-2.0/controls/panel.lua
+lib/LibAddonMenu-2.0/controls/submenu.lua
+lib/LibAddonMenu-2.0/controls/button.lua
+lib/LibAddonMenu-2.0/controls/checkbox.lua
+lib/LibAddonMenu-2.0/controls/colorpicker.lua
+lib/LibAddonMenu-2.0/controls/custom.lua
+lib/LibAddonMenu-2.0/controls/description.lua
+lib/LibAddonMenu-2.0/controls/dropdown.lua
+lib/LibAddonMenu-2.0/controls/editbox.lua
+lib/LibAddonMenu-2.0/controls/header.lua
+lib/LibAddonMenu-2.0/controls/iconpicker.lua
+lib/LibAddonMenu-2.0/controls/slider.lua
+lib/LibAddonMenu-2.0/controls/texture.lua
+
+lang/en.lua
+lang/$(language).lua
+
+lua/cli.lua
+lua/guild.lua
+lua/kick.lua
+lua/queue.lua
+
+AutoInviteUI.lua
+ui/half_grouplist.lua
+ui/half_grouplist.xml
+ui/ai_enabled_fragment.lua
+ui/ai_options_fragment.lua
+ui/autoinvitescene.lua
+ui/bindings.xml
+
+AutoInvite.lua
