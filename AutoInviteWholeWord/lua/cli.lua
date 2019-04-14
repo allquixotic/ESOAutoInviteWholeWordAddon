@@ -95,11 +95,11 @@ local chatChannels = {
 
 local function generateChatChannelString()
     local builder = ""
-    for j,v in ipairs(chatChannels) do
-        if j > 1 then
+    for k,v in pairs(chatChannels) do
+        if k >= 1 then
             builder = builder .. ", "
         end
-        builder = builder .. j .. " = " .. v
+        builder = builder .. k .. " = " .. v
     end
     return builder
 end
