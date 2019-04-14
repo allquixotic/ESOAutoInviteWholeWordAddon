@@ -37,13 +37,33 @@ local function ai_startsWith(str, start)
    return str:sub(1, #start) == start
 end
 
+-- From http://lua-users.org/wiki/SplitJoin
+function ai_split(str, pat)
+    local t = {}  -- NOTE: use {n = 0} in Lua-5.0
+    local fpat = "(.-)" .. pat
+    local last_end = 1
+    local s, e, cap = str:find(fpat, 1)
+    while s do
+       if s ~= 1 or cap ~= "" then
+          table.insert(t,cap)
+       end
+       last_end = e+1
+       s, e, cap = str:find(fpat, last_end)
+    end
+    if last_end <= #str then
+       cap = str:sub(last_end)
+       table.insert(t, cap)
+    end
+    return t
+ end
+
 -- From https://stackoverflow.com/questions/54510033/match-repeatable-string-as-a-whole-word-in-lua-5-1
 -- I am ever grateful to the people who worked hard on that problem, especially Egor Skriptunoff!
 function ai_containsWholeWord(input, word)
    return (" "..input:gsub(word:gsub("%%", "%%%%"), "\0").." "):find"%s%p*%z+%p*%s" ~= nil
 end
 
-function ai_matches(pattern, message)
+function ai_matches_one(pattern, message)
 	message = string.lower(message)
 	if ai_startsWith(pattern, "\\!") then
 		return message == string.sub(pattern, 2)
@@ -56,6 +76,16 @@ function ai_matches(pattern, message)
 	end
 end
 
+function ai_matches(pattern, message)
+    local eachBar = ai_split(pattern, '|')
+    for i, bar in ipairs(eachBar) do
+        if ai_matches_one(bar, message) == true then
+            return true
+        end
+    end
+    return false
+end
+
 ------------------------------------------------
 --- Event handlers
 ------------------------------------------------
@@ -66,18 +96,41 @@ AutoInvite.callback = function(_, messageType, from, message)
         return
     end
 
+    local allowed = true
+    if AutoInvite.cfg.allowedChannels ~= nil and #AutoInvite.cfg.allowedChannels > 0 then
+        allowed = false
+        for k,v in pairs(AutoInvite.cfg.allowedChannels) do
+            if v == messageType then 
+                allowed = true
+            end
+        end
+    end
+    if allowed == false then
+        return
+    end
+
+    if from ~= nil and from ~= "" and AutoInvite.cfg.ignored ~= nil and #AutoInvite.cfg.ignored > 0 then
+        local lfrom = ai_split(string.lower(from), "^")[1]
+        for i, iname in ipairs(AutoInvite.cfg.ignored) do
+            local liname = string.lower(iname)
+            if liname == lfrom or "@" .. liname == lfrom or "@" .. lfrom == liname then
+                return
+            end
+        end
+    end
+
     --TODO: Move this to the actual invite send so not per-message
     if GetGroupSize() >= AutoInvite.cfg.maxSize then
         echo(GetString(SI_AUTO_INVITE_GROUP_FULL_STOP))
         AutoInvite.stopListening()
     end
-
-	
 		
     if ai_matches(AutoInvite.cfg.watchStr, message) and from ~= nil and from ~= "" then
         if (messageType >= CHAT_CHANNEL_GUILD_1 and messageType <= CHAT_CHANNEL_OFFICER_5) or messageType == CHAT_CHANNEL_WHISPER then
             from = AutoInvite.accountNameLookup(messageType, from)
             if from == "" or from == nil then return end
+        else
+            
         end
 
         echo(zo_strformat(GetString(SI_AUTO_INVITE_SEND_TO_USER), from))
@@ -189,6 +242,8 @@ AutoInvite.init = function()
         kickDelay = 300,
         watchStr = "",
         showPanel = true,
+        allowedChannels = {},
+        ignored = {}
     }
     AutoInvite.cfg = ZO_SavedVars:NewAccountWide("AutoInviteSettings", 1.0, "config", def)
     EVENT_MANAGER:RegisterForEvent(AutoInvite.AddonId, EVENT_GROUP_MEMBER_LEFT, AutoInvite.playerLeave)
